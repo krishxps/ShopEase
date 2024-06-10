@@ -1,3 +1,16 @@
+/*********************************************************************************
+WEB322 – Assignment 02
+I declare that this assignment is my own work in accordance with Seneca Academic Policy.  
+No part of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or distributed to other students.
+
+Name: Krish Sanjaybhai Patel
+Student ID: 106198237
+Date: 10 June 2024
+Vercel Web App URL: https://web322-app-krishxps.vercel.app/
+GitHub Repository URL: https://github.com/krishxps/web322-app
+
+********************************************************************************/ 
+
 const express = require('express');
 const path = require('path');
 const storeService = require('./store-service');
