@@ -46,3 +46,5 @@ storeService.initialize()
     .catch(err => {
         console.log(`Unable to start server: ${err}`);
     });
+
+module.exports = app; 
