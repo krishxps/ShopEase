@@ -47,9 +47,19 @@ app.get('/shop', (req, res) => {
 });
 
 app.get('/items', (req, res) => {
-    storeService.getAllItems()
-        .then(data => res.json(data))
-        .catch(err => res.status(500).json({ message: err }));
+    if (req.query.category) {
+        storeService.getItemsByCategory(req.query.category)
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    } else if (req.query.minDate) {
+        storeService.getItemsByMinDate(req.query.minDate)
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    } else {
+        storeService.getAllItems()
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    }
 });
 
 app.get('/categories', (req, res) => {
@@ -95,7 +105,6 @@ app.post('/items/add', upload.single('featureImage'), (req, res,next) => {
      
     function processItem(imageUrl){
         req.body.featureImage = imageUrl;
-        // TODO: Process the req.body and add it as a new Item before redirecting to /items
         storeService.addItem(req.body)
             .then(() => res.redirect('/items'))
             .catch(err => res.status(500).json({ message: err }));
@@ -116,4 +125,4 @@ storeService.initialize()
         console.log(`Unable to start server: ${err}`);
     });
 
-module.exports = app; 
+module.exports = app;
