@@ -68,6 +68,12 @@ app.get('/categories', (req, res) => {
         .catch(err => res.status(500).json({ message: err }));
 });
 
+app.get('/items/:id', (req, res) => {
+    storeService.getItemById(req.params.id)
+        .then(data => res.json(data))
+        .catch(err => res.status(500).json({ message: err }));
+});
+
 app.get('/items/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'additem.html'));
 })

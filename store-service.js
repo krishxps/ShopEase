@@ -39,7 +39,6 @@ const initialize = () => {
         );
     });
 };
-
 const getAllItems = () => {
     return new Promise((resolve, reject) => {
         if (items.length > 0) {
@@ -104,11 +103,25 @@ const getItemsByCategory = (category) => {
     });
 };
 
-const getItemsByMinDate = (date) => {
+
+const getItemsByMinDate = (minDateStr) => {
     return new Promise((resolve, reject) => {
-        const itemsByDate = items.filter((item) => item.postDate >= date);
+        const minDate = new Date(minDateStr);
+        const itemsByDate = items.filter((item) => new Date(item.postDate) >= minDate);
         if (itemsByDate.length > 0) {
             resolve(itemsByDate);
+        } else {
+            reject("no results returned");
+        }
+    });
+};
+
+
+ const getItemById = (id) => {
+    return new Promise((resolve, reject) => {
+        const item = items.find((item) => item.id == id);
+        if (item) {
+            resolve(item);
         } else {
             reject("no results returned");
         }
@@ -122,5 +135,6 @@ module.exports = {
     getCategories,
     addItem,
     getItemsByCategory,
-    getItemsByMinDate
+    getItemsByMinDate,
+    getItemById
 };
