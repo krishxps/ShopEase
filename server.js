@@ -10,7 +10,9 @@ Vercel Web App URL: https://web322-app-krishxps.vercel.app/
 GitHub Repository URL: https://github.com/krishxps/web322-app
 
 ********************************************************************************/ 
-
+//---------------------------------------------------------------------------
+/// Library & File Imports
+//---------------------------------------------------------------------------
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
@@ -19,19 +21,30 @@ const streamifier = require('streamifier');
 
 const storeService = require('./store-service');
 
+//---------------------------------------------------------------------------
+/// Server Setup
+//---------------------------------------------------------------------------
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+//---------------------------------------------------------------------------
+/// Cloudinary Setup
+//---------------------------------------------------------------------------
 cloudinary.config({
     cloud_name: 'dh0zkzgpk',
     api_key: '645712828111368',
     api_secret: 'FJuB75gHkggMxdNmaG8EPSehV5w'
 });
-
 const upload = multer();
 
+//---------------------------------------------------------------------------
+/// Custom Middleware
+//---------------------------------------------------------------------------
 app.use(express.static('public'));
 
+//---------------------------------------------------------------------------
+/// Default Route
+//---------------------------------------------------------------------------
 app.get('/', (req, res) => {
     res.redirect('/about');
 });
@@ -40,12 +53,18 @@ app.get('/about', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
+//---------------------------------------------------------------------------
+/// Shop Routes
+//---------------------------------------------------------------------------
 app.get('/shop', (req, res) => {
     storeService.getPublishedItems()
         .then(data => res.json(data))
         .catch(err => res.status(500).json({ message: err }));
 });
 
+//---------------------------------------------------------------------------
+/// Item Routes
+//---------------------------------------------------------------------------
 app.get('/items', (req, res) => {
     if (req.query.category) {
         storeService.getItemsByCategory(req.query.category)
@@ -60,12 +79,6 @@ app.get('/items', (req, res) => {
             .then(data => res.json(data))
             .catch(err => res.status(500).json({ message: err }));
     }
-});
-
-app.get('/categories', (req, res) => {
-    storeService.getCategories()
-        .then(data => res.json(data))
-        .catch(err => res.status(500).json({ message: err }));
 });
 
 app.get('/items/add', (req, res) => {
@@ -117,10 +130,25 @@ app.get('/items/:id', (req, res) => {
         .catch(err => res.status(500).json({ message: err }));
 });
 
+//---------------------------------------------------------------------------
+/// Category Routes
+//---------------------------------------------------------------------------
+app.get('/categories', (req, res) => {
+    storeService.getCategories()
+        .then(data => res.json(data))
+        .catch(err => res.status(500).json({ message: err }));
+});
+
+//---------------------------------------------------------------------------
+/// 404 Routes
+//---------------------------------------------------------------------------
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
 });
 
+//---------------------------------------------------------------------------
+/// Start Server
+//---------------------------------------------------------------------------
 storeService.initialize()
     .then(() => {
         app.listen(PORT, () => {

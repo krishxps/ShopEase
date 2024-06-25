@@ -4,6 +4,9 @@ const path = require("path");
 let items = [];
 let categories = [];
 
+//---------------------------------------------------------------------------
+/// initialize
+//---------------------------------------------------------------------------
 const initialize = () => {
     return new Promise((resolve, reject) => {
         fs.readFile(
@@ -39,6 +42,22 @@ const initialize = () => {
         );
     });
 };
+//---------------------------------------------------------------------------
+/// Category Functions
+//---------------------------------------------------------------------------
+const getCategories = () => {
+    return new Promise((resolve, reject) => {
+        if (categories.length > 0) {
+            resolve(categories);
+        } else {
+            reject("no results returned");
+        }
+    });
+};
+
+//---------------------------------------------------------------------------
+/// Item Functions
+//---------------------------------------------------------------------------
 const getAllItems = () => {
     return new Promise((resolve, reject) => {
         if (items.length > 0) {
@@ -54,16 +73,6 @@ const getPublishedItems = () => {
         const publishedItems = items.filter((item) => item.published);
         if (publishedItems.length > 0) {
             resolve(publishedItems);
-        } else {
-            reject("no results returned");
-        }
-    });
-};
-
-const getCategories = () => {
-    return new Promise((resolve, reject) => {
-        if (categories.length > 0) {
-            resolve(categories);
         } else {
             reject("no results returned");
         }
@@ -102,7 +111,6 @@ const getItemsByCategory = (category) => {
         }
     });
 };
-
 
 const getItemsByMinDate = (minDateStr) => {
     return new Promise((resolve, reject) => {
