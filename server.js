@@ -68,17 +68,11 @@ app.get('/categories', (req, res) => {
         .catch(err => res.status(500).json({ message: err }));
 });
 
-app.get('/items/:id', (req, res) => {
-    storeService.getItemById(req.params.id)
-        .then(data => res.json(data))
-        .catch(err => res.status(500).json({ message: err }));
-});
-
 app.get('/items/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'additem.html'));
-})
+});
 
-app.post('/items/add', upload.single('featureImage'), (req, res,next) => {
+app.post('/items/add', upload.single('featureImage'), (req, res) => {
     if(req.file){
         let streamUpload = (req) => {
             return new Promise((resolve, reject) => {
@@ -115,7 +109,13 @@ app.post('/items/add', upload.single('featureImage'), (req, res,next) => {
             .then(() => res.redirect('/items'))
             .catch(err => res.status(500).json({ message: err }));
     }
-})
+});
+
+app.get('/items/:id', (req, res) => {
+    storeService.getItemById(req.params.id)
+        .then(data => res.json(data))
+        .catch(err => res.status(500).json({ message: err }));
+});
 
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
