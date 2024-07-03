@@ -192,8 +192,8 @@ app.get("/items/:id", (req, res) => {
 app.get("/categories", (req, res) => {
   storeService
     .getCategories()
-    .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ message: err }));
+    .then((data) => res.render("categories", { categories: data }))
+    .catch((err) => res.status(500).render("posts", { message: "no results", error: err }))
 });
 
 //---------------------------------------------------------------------------
