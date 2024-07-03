@@ -18,6 +18,7 @@ const path = require('path');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
+const exphbs = require('express-handlebars');
 
 const storeService = require('./store-service');
 
@@ -41,6 +42,34 @@ const upload = multer();
 /// Custom Middleware
 //---------------------------------------------------------------------------
 app.use(express.static('public'));
+app.engine('.hbs', exphbs.engine({ 
+    extname: '.hbs',
+    defaultLayout: 'main',
+    helpers: {
+        navLink: function(url, options) {
+            return '<li class="nav-item"><a ' + 
+                ((url == app.locals.activeRoute) ? ' class="nav-link active"' : 'class="nav-link"') + 
+              ' href="' + url + '">' + options.fn(this) + '</a></li>';
+        },
+        equal: function(lvalue, rvalue, options) {
+            if (arguments.length < 3)
+                throw new Error("Handlebars Helper equal needs 2 parameters");
+            if (lvalue != rvalue) {
+                return options.inverse(this);
+            } else {
+                return options.fn(this);
+            }
+        }
+    }
+}));
+
+app.set('view engine', '.hbs');
+app.use(function(req, res, next) {
+    let route = req.path.substring(1);
+    app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));
+    app.locals.viewingCategory = req.query.category;
+    next();
+});
 
 //---------------------------------------------------------------------------
 /// Default Route
@@ -50,7 +79,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'about.html'));
+    res.render('about');  
 });
 
 //---------------------------------------------------------------------------
@@ -82,11 +111,11 @@ app.get('/items', (req, res) => {
 });
 
 app.get('/items/add', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'additem.html'));
+    res.render('additem');
 });
 
 app.post('/items/add', upload.single('featureImage'), (req, res) => {
-    if(req.file){
+    if (req.file) {
         let streamUpload = (req) => {
             return new Promise((resolve, reject) => {
                 let stream = cloudinary.uploader.upload_stream(
@@ -98,25 +127,25 @@ app.post('/items/add', upload.single('featureImage'), (req, res) => {
                         }
                     }
                 );
-    
+
                 streamifier.createReadStream(req.file.buffer).pipe(stream);
             });
         };
-    
+
         async function upload(req) {
             let result = await streamUpload(req);
             console.log(result);
             return result;
         }
-    
-        upload(req).then((uploaded)=>{
+
+        upload(req).then((uploaded) => {
             processItem(uploaded.url);
         });
-    }else{
+    } else {
         processItem("");
     }
      
-    function processItem(imageUrl){
+    function processItem(imageUrl) {
         req.body.featureImage = imageUrl;
         storeService.addItem(req.body)
             .then(() => res.redirect('/items'))
@@ -159,4 +188,7 @@ storeService.initialize()
         console.log(`Unable to start server: ${err}`);
     });
 
+//---------------------------------------------------------------------------
+/// Exports
+//---------------------------------------------------------------------------
 module.exports = app;
