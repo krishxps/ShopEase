@@ -19,6 +19,7 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 const exphbs = require("express-handlebars");
+const Handlebars = require("handlebars");
 
 const storeService = require("./store-service");
 
@@ -62,6 +63,18 @@ app.engine(
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
+        safeHTML: function (html) {
+            return new Handlebars.SafeString(html);
+          },      
+          lookupCategory: async function (categoryId) {
+            try {
+                const category = await storeService.getCategoryById(categoryId);
+                return category ? category.name : "Unknown Category";
+            } catch (err) {
+                console.error("Error in lookupCategory helper:", err);
+                return "Unknown Category";
+            }
+        },        
       navLink: function (url, options) {
         return (
           '<li class="nav-item"><a ' +
@@ -102,13 +115,71 @@ app.get("/about", (req, res) => {
 //---------------------------------------------------------------------------
 /// Shop Routes
 //---------------------------------------------------------------------------
-app.get("/shop", (req, res) => {
-  storeService
-    .getPublishedItems()
-    .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ message: err }));
+app.get("/shop", async (req, res) => {
+  let viewData = {};
+
+  try {
+    let items = [];
+    if (req.query.category) {
+      items = await storeService.getPublishedItemsByCategory(
+        req.query.category
+      );
+    } else {
+      items = await storeService.getPublishedItems();
+    }
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+    let post = items[0];
+    viewData.items = items;
+    viewData.item = post;
+  } catch (err) {
+    viewData.message = "no results";
+  }
+
+  try {
+    let categories = await storeService.getCategories();
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "no results";
+  }
+  res.render("shop", { data: viewData });
 });
 
+app.get("/shop/:id", async (req, res) => {
+  let viewData = {};
+
+  try {
+    let items = [];
+
+    if (req.query.category) {
+      items = await storeService.getPublishedItemsByCategory(req.query.category);
+    } else {
+      items = await storeService.getPublishedItems();
+    }
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+
+    viewData.items = items;
+  } catch (err) {
+    viewData.message = "no results";
+  }
+  try {
+    viewData.item = await storeService.getItemById(req.params.id);
+  } catch (err) {
+    viewData.message = "no results";
+  }
+
+  try {
+    // Obtain the full list of "categories"
+    let categories = await storeService.getCategories();
+
+    // store the "categories" data in the viewData object (to be passed to the view)
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "no results";
+  }
+
+  // render the "shop" view with all of the data (viewData)
+  res.render("shop", { data: viewData });
+});
 //---------------------------------------------------------------------------
 /// Item Routes
 //---------------------------------------------------------------------------
@@ -193,7 +264,9 @@ app.get("/categories", (req, res) => {
   storeService
     .getCategories()
     .then((data) => res.render("categories", { categories: data }))
-    .catch((err) => res.status(500).render("posts", { message: "no results", error: err }))
+    .catch((err) =>
+      res.status(500).render("posts", { message: "no results", error: err })
+    );
 });
 
 //---------------------------------------------------------------------------
