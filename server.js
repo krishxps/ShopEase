@@ -263,10 +263,15 @@ app.get("/items/:id", (req, res) => {
 app.get("/categories", (req, res) => {
   storeService
     .getCategories()
+<<<<<<< HEAD
     .then((data) => res.render("categories", { categories: data }))
     .catch((err) =>
       res.status(500).render("posts", { message: "no results", error: err })
     );
+=======
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ message: err }));
+>>>>>>> parent of 36b4378 (Part 3 Done Fully)
 });
 
 //---------------------------------------------------------------------------
