@@ -92,7 +92,7 @@ app.engine(
 /// Default Route
 //---------------------------------------------------------------------------
 app.get("/", (req, res) => {
-  res.redirect("/shop");
+  res.redirect("shop");
 });
 
 app.get("/about", (req, res) => {
