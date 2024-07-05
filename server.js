@@ -1,5 +1,5 @@
 /*********************************************************************************
-WEB322 – Assignment 03
+WEB322 – Assignment 04
 I declare that this assignment is my own work in accordance with Seneca Academic Policy.  
 No part of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or distributed to other students.
 
@@ -92,7 +92,7 @@ app.engine(
 /// Default Route
 //---------------------------------------------------------------------------
 app.get("/", (req, res) => {
-  res.redirect("/about");
+  res.redirect("/shop");
 });
 
 app.get("/about", (req, res) => {
@@ -257,7 +257,7 @@ app.get("/categories", (req, res) => {
 /// 404 Routes
 //---------------------------------------------------------------------------
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "views", "404.html"));
+  res.status(404).render("404");
 });
 
 //---------------------------------------------------------------------------
