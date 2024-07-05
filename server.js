@@ -102,11 +102,67 @@ app.get("/about", (req, res) => {
 //---------------------------------------------------------------------------
 /// Shop Routes
 //---------------------------------------------------------------------------
-app.get("/shop", (req, res) => {
-  storeService
-    .getPublishedItems()
-    .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ message: err }));
+app.get("/shop", async (req, res) => {
+  let viewData = {};
+
+  try {
+    let items = [];
+    if (req.query.category) {
+      items = await storeService.getPublishedItemsByCategory(req.query.category);
+    } else {
+      items = await storeService.getPublishedItems();
+    }
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+    let post = items[0];
+    viewData.items = items;
+    viewData.item = post;
+  } catch (err) {
+    viewData.message = "no results";
+  }
+
+  try {
+    let categories = await storeService.getCategories();
+    viewData.categories = categories;
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "no results";
+  }
+  res.render("shop", { data: viewData });
+});
+
+app.get('/shop/:id', async (req, res) => {
+  let viewData = {};
+
+  try {
+    let items = [];
+    if (req.query.category) {
+      items = await storeService.getPublishedItemsByCategory(req.query.category);
+    } else {
+      items = await storeService.getPublishedItems();
+    }
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+    viewData.items = items;
+  } catch (err) {
+    viewData.message = "No results for items";
+  }
+
+  try {
+    viewData.item = await storeService.getItemById(req.params.id);
+    if (!viewData.item || !viewData.item.published) {
+      viewData.message = `No results for item with ID: ${req.params.id}`;
+    }
+  } catch (err) {
+    viewData.message = "Error fetching item details";
+  }
+
+  try {
+    let categories = await storeService.getCategories();
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "No results for categories";
+  }
+
+  res.render("shop", { data: viewData });
 });
 
 

@@ -54,6 +54,17 @@ const getCategories = () => {
         }
     });
 };
+const getPublishedItemsByCategory = (category) => {
+    return new Promise((resolve, reject) => {
+        const publishedItemsByCategory = items
+            .filter((item) => item.category == category && item.published == true);
+        if (publishedItemsByCategory.length > 0) {
+            resolve(publishedItemsByCategory);
+        } else {
+            reject("no results returned");
+        }
+    });
+}
 
 //---------------------------------------------------------------------------
 /// Item Functions
@@ -141,6 +152,7 @@ module.exports = {
     getAllItems,
     getPublishedItems,
     getCategories,
+    getPublishedItemsByCategory,
     addItem,
     getItemsByCategory,
     getItemsByMinDate,
