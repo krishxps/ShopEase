@@ -42,7 +42,7 @@ const upload = multer();
 /// Custom Middleware
 //---------------------------------------------------------------------------
 app.set("view engine", "hbs");
-
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.static("public"));
 
 app.use(function (req, res, next) {
