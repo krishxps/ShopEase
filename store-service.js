@@ -14,37 +14,34 @@ const initialize = () => {
             "utf8",
             (err, data) => {
                 if (err) {
-                    reject("Unable to read items file");
+                    reject("unable to read items file");
                     return;
                 }
                 try {
                     items = JSON.parse(data);
-                    resolve();
                 } catch (err) {
-                    reject("Unable to parse items file");
+                    reject("unable to parse items file");
                 }
             }
         );
-
         fs.readFile(
             path.join(__dirname, "data", "categories.json"),
             "utf8",
             (err, data) => {
                 if (err) {
-                    reject("Unable to read categories file");
+                    reject("unable to read categories file");
                     return;
                 }
                 try {
                     categories = JSON.parse(data);
-                    resolve(); // Resolve once categories are loaded
+                    resolve();
                 } catch (err) {
-                    reject("Unable to parse categories file");
+                    reject("unable to parse categories file");
                 }
             }
         );
     });
 };
-
 //---------------------------------------------------------------------------
 /// Category Functions
 //---------------------------------------------------------------------------
@@ -53,31 +50,7 @@ const getCategories = () => {
         if (categories.length > 0) {
             resolve(categories);
         } else {
-            reject("No categories found");
-        }
-    });
-};
-
-const getCategoryById = (categoryId) => {
-    return new Promise((resolve, reject) => {
-        const category = categories.find((cat) => cat.id === categoryId);
-        if (category) {
-            resolve(category);
-        } else {
-            reject("Category not found");
-        }
-    });
-};
-
-const getPublishedItemsByCategory = (category) => {
-    return new Promise((resolve, reject) => {
-        const itemsByCategory = items.filter(
-            (item) => item.category === category && item.published
-        );
-        if (itemsByCategory.length > 0) {
-            resolve(itemsByCategory);
-        } else {
-            reject("No published items found in this category");
+            reject("no results returned");
         }
     });
 };
@@ -90,7 +63,7 @@ const getAllItems = () => {
         if (items.length > 0) {
             resolve(items);
         } else {
-            reject("No items found");
+            reject("no results returned");
         }
     });
 };
@@ -101,14 +74,13 @@ const getPublishedItems = () => {
         if (publishedItems.length > 0) {
             resolve(publishedItems);
         } else {
-            reject("No published items found");
+            reject("no results returned");
         }
     });
 };
 
 const addItem = (item) => {
     return new Promise((resolve, reject) => {
-        // Example logic for adding an item; adjust as needed
         if (item.published === undefined) {
             item.published = false;
         } else {
@@ -131,11 +103,11 @@ const addItem = (item) => {
 
 const getItemsByCategory = (category) => {
     return new Promise((resolve, reject) => {
-        const itemsByCategory = items.filter((item) => item.category === category);
+        const itemsByCategory = items.filter((item) => item.category == category);
         if (itemsByCategory.length > 0) {
             resolve(itemsByCategory);
         } else {
-            reject("No items found in this category");
+            reject("no results returned");
         }
     });
 };
@@ -147,18 +119,19 @@ const getItemsByMinDate = (minDateStr) => {
         if (itemsByDate.length > 0) {
             resolve(itemsByDate);
         } else {
-            reject("No items found with the specified minimum date");
+            reject("no results returned");
         }
     });
 };
 
-const getItemById = (id) => {
+
+ const getItemById = (id) => {
     return new Promise((resolve, reject) => {
         const item = items.find((item) => item.id == id);
         if (item) {
             resolve(item);
         } else {
-            reject("Item not found");
+            reject("no results returned");
         }
     });
 };
@@ -168,8 +141,6 @@ module.exports = {
     getAllItems,
     getPublishedItems,
     getCategories,
-    getCategoryById,
-    getPublishedItemsByCategory,
     addItem,
     getItemsByCategory,
     getItemsByMinDate,
