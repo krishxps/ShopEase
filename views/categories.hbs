@@ -9,6 +9,7 @@
                         <tr>
                             <th>Category ID</th>
                             <th>Category Name</th>
+                            <th></th> <!-- Empty header for remove column -->
                         </tr>
                     </thead>
                     <tbody>
@@ -16,6 +17,7 @@
                         <tr>
                             <td><a href="/items?category={{this.id}}">{{this.id}}</a></td>
                             <td><a href="/items?category={{this.id}}">{{this.category}}</a></td>
+                            <td><a href="/categories/delete/{{this.id}}" class="btn btn-danger">remove</a></td>
                         </tr>
                         {{/each}}
                     </tbody>

@@ -1,5 +1,5 @@
 /*********************************************************************************
-WEB322 – Assignment 04
+WEB322 – EB322 – Assignment 05
 I declare that this assignment is my own work in accordance with Seneca Academic Policy.  
 No part of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or distributed to other students.
 
@@ -42,6 +42,7 @@ const upload = multer();
 /// Custom Middleware
 //---------------------------------------------------------------------------
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "hbs");
 
@@ -84,6 +85,12 @@ app.engine(
           return options.fn(this);
         }
       },
+      formatDate: function(dateObj){
+        let year = dateObj.getFullYear();
+        let month = (dateObj.getMonth() + 1).toString();
+        let day = dateObj.getDate().toString();
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2,'0')}`;
+    }    
     },
   })
 );
@@ -122,7 +129,6 @@ app.get("/shop", async (req, res) => {
 
   try {
     let categories = await storeService.getCategories();
-    viewData.categories = categories;
     viewData.categories = categories;
   } catch (err) {
     viewData.categoriesMessage = "no results";
@@ -165,7 +171,6 @@ app.get('/shop/:id', async (req, res) => {
   res.render("shop", { data: viewData });
 });
 
-
 //---------------------------------------------------------------------------
 /// Item Routes
 //---------------------------------------------------------------------------
@@ -173,29 +178,44 @@ app.get("/items", (req, res) => {
   if (req.query.category) {
     storeService
       .getItemsByCategory(req.query.category)
-      .then((data) => res.render("items", { items: data }))
-      .catch((err) =>
-        res.status(500).render("posts", { message: "no results", error: err })
-      );
+      .then((data) => {
+        if (data.length > 0) res.render("items", { items: data });
+        else res.render("items", { message: "no results" });
+      })
+      .catch((err) => {
+        res.render("items", { message: "no results" });
+      });
   } else if (req.query.minDate) {
     storeService
       .getItemsByMinDate(req.query.minDate)
-      .then((data) => res.render("items", { items: data }))
-      .catch((err) =>
-        res.status(500).render("posts", { message: "no results", error: err })
-      );
+      .then((data) => {
+        if (data.length > 0) res.render("items", { items: data });
+        else res.render("items", { message: "no results" });
+      })
+      .catch((err) => {
+        res.render("items", { message: "no results" });
+      });
   } else {
     storeService
       .getAllItems()
-      .then((data) => res.render("items", { items: data }))
-      .catch((err) =>
-        res.status(500).render("posts", { message: "no results", error: err })
-      );
+      .then((data) => {
+        if (data.length > 0) res.render("items", { items: data });
+        else res.render("items", { message: "no results" });
+      })
+      .catch((err) => {
+        res.render("items", { message: "no results" });
+      });
   }
 });
 
 app.get("/items/add", (req, res) => {
-  res.render("additem");
+  storeService.getCategories()
+      .then((data) => {
+          res.render("addPost", { categories: data });
+      })
+      .catch((err) => {
+          res.render("addPost", { categories: [] });
+      });
 });
 
 app.post("/items/add", upload.single("featureImage"), (req, res) => {
@@ -236,25 +256,64 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
   }
 });
 
-app.get("/items/:id", (req, res) => {
+app.get("/item/:id", (req, res) => {
   storeService
     .getItemById(req.params.id)
-    .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ message: err }));
+    .then((data) => {
+      if (data) res.render("item", { item: data });
+      else res.status(404).send("Item Not Found");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to retrieve item");
+    });
 });
+
+app.get("/items/delete/:id", (req, res) => {
+  storeService
+    .deletePostById(req.params.id)
+    .then(() => res.redirect("/items"))
+    .catch((err) => res.status(500).send("Unable to Remove Post / Post not found"));
+});
+
 
 //---------------------------------------------------------------------------
 /// Category Routes
 //---------------------------------------------------------------------------
 app.get("/categories", (req, res) => {
-  storeService
-    .getCategories()
-    .then((data) => res.render("categories", { categories: data }))
-    .catch((err) => res.status(500).render("posts", { message: "no results", error: err }))
+  storeService.getCategories().then((data) => {
+    if (data.length > 0) res.render("categories", { categories: data });
+    else res.render("categories", { message: "no results" });
+  }).catch((err) => {
+    res.render("categories", { message: "no results" });
+  });
+});
+
+app.get("/categories/add", (req, res) => {
+  res.render("addCategory");
+});
+
+app.post("/categories/add", (req, res) => {
+  storeService.addCategory(req.body)
+    .then(() => {
+      res.redirect("/categories");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to add category");
+    });
+});
+
+app.get("/categories/delete/:id", (req, res) => {
+  storeService.deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect("/categories");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to remove category / Category not found");
+    });
 });
 
 //---------------------------------------------------------------------------
-/// 404 Routes
+/// 404 Error Handler
 //---------------------------------------------------------------------------
 app.use((req, res) => {
   res.status(404).render("404");
@@ -263,20 +322,12 @@ app.use((req, res) => {
 //---------------------------------------------------------------------------
 /// Start Server
 //---------------------------------------------------------------------------
-storeService
-  .initialize()
+storeService.initialize()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(
-        `Express http server listening on port http://localhost:${PORT}`
-      );
+      console.log(`Express http server listening on: http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
     console.log(`Unable to start server: ${err}`);
   });
-
-//---------------------------------------------------------------------------
-/// Exports
-//---------------------------------------------------------------------------
-module.exports = app;

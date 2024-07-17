@@ -12,6 +12,7 @@
                         <th>Price</th>
                         <th>Category</th>
                         <th>Published</th>
+                        <th>Actions</th> <!-- New column for actions -->
                     </tr>
                 </thead>
                 <tbody>
@@ -23,6 +24,9 @@
                         <td>{{this.price}}</td>
                         <td><a href="/items?category={{this.category}}">{{this.category}}</a></td>
                         <td>{{this.published}}</td>
+                        <td>
+                            <a href="/items/delete/{{this.id}}" class="btn btn-danger">Remove</a>
+                        </td>
                     </tr>
                     {{/each}}
                 </tbody>
