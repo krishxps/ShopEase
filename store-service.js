@@ -18,14 +18,20 @@ let sequelize = new Sequelize('SenecaDB', 'SenecaDB_owner', '6KEOFPwGNS2d', {
     query: { raw: true }
 });
 
-let items = [];
-let categories = [];
-
 //---------------------------------------------------------------------------
 // Define Models
 //---------------------------------------------------------------------------
-const Category = sequelize.define("categories", {
-    category: Sequelize.STRING
+const Category = sequelize.define("Category", {
+    categoryID: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        unique: true
+    },
+    categoryName: {
+        type: Sequelize.STRING,
+        allowNull: false
+    }
 });
 
 const Item = sequelize.define("item", {
@@ -35,16 +41,17 @@ const Item = sequelize.define("item", {
     featureImage: Sequelize.STRING,
     published: Sequelize.BOOLEAN,
     price: Sequelize.FLOAT,
-    categoryId: {
+    categoryID: { 
         type: Sequelize.INTEGER,
         references: {
             model: Category,
-            key: 'id'
+            key: 'categoryID'
         }
     }
 });
 
-Item.belongsTo(Category, { foreignKey: 'categoryId' });
+Item.belongsTo(Category, { foreignKey: 'categoryID' });
+Category.hasMany(Item, { foreignKey: 'categoryID' });
 
 //---------------------------------------------------------------------------
 /// initialize
@@ -74,6 +81,7 @@ const getCategories = () => {
 
 const addCategory = (categoryData) => {
     return new Promise((resolve, reject) => {
+        console.log("Category Data:", categoryData); 
         for (let key in categoryData) {
             if (categoryData[key] === "") {
                 categoryData[key] = null;
@@ -81,22 +89,27 @@ const addCategory = (categoryData) => {
         }
         Category.create(categoryData)
             .then(() => resolve())
-            .catch((err) => reject("unable to create category"));
+            .catch((err) => {
+                console.error("Error:", err);
+                reject("Unable to create category: " + err.message || err);
+            });
     });
 };
+
 
 const deleteCategoryById = (id) => {
     return new Promise((resolve, reject) => {
         Category.destroy({
-            where: { id: id }
+            where: { categoryID: id }  
         })
             .then((deleted) => {
                 if (deleted) resolve();
                 else reject("Category not found");
             })
-            .catch((err) => reject("unable to delete category"));
+            .catch((err) => reject("Unable to delete category: " + err));
     });
 };
+
 
 const getPublishedItemsByCategory = (category) => {
     return new Promise((resolve, reject) => {
@@ -136,7 +149,9 @@ const getPublishedItems = () => {
 
 const addItem = (itemData) => {
     itemData.published = !!itemData.published; 
-    itemData.postDate = new Date().toISOString(); 
+    itemData.postDate = new Date().toISOString();
+    itemData.categoryID = parseInt(itemData.categoryID, 10); 
+ 
     return new Promise((resolve, reject) => {
         Item.create(itemData)
             .then(() => resolve())
@@ -175,13 +190,14 @@ const getItemsByCategory = (category) => {
     return new Promise((resolve, reject) => {
         Item.findAll({
             where: {
-                category: category
+                categoryID: category  
             }
         })
         .then((data) => resolve(data))
-        .catch((err) => reject("no results returned", err));
+        .catch((err) => reject("No results returned: " + err));
     });
 };
+
 
 const deleteItemById = (id) => {
     return new Promise((resolve, reject) => {
@@ -192,7 +208,7 @@ const deleteItemById = (id) => {
                 if (deleted) resolve();
                 else reject("Item not found");
             })
-            .catch((err) => reject("unable to delete item"));
+            .catch((err) => reject("Unable to delete item: " + err));
     });
 };
 

@@ -174,48 +174,39 @@ app.get('/shop/:id', async (req, res) => {
 //---------------------------------------------------------------------------
 /// Item Routes
 //---------------------------------------------------------------------------
-app.get("/items", (req, res) => {
-  if (req.query.category) {
-    storeService
-      .getItemsByCategory(req.query.category)
-      .then((data) => {
-        if (data.length > 0) res.render("items", { items: data });
-        else res.render("items", { message: "no results" });
-      })
-      .catch((err) => {
-        res.render("items", { message: "no results" });
-      });
-  } else if (req.query.minDate) {
-    storeService
-      .getItemsByMinDate(req.query.minDate)
-      .then((data) => {
-        if (data.length > 0) res.render("items", { items: data });
-        else res.render("items", { message: "no results" });
-      })
-      .catch((err) => {
-        res.render("items", { message: "no results" });
-      });
-  } else {
-    storeService
-      .getAllItems()
-      .then((data) => {
-        if (data.length > 0) res.render("items", { items: data });
-        else res.render("items", { message: "no results" });
-      })
-      .catch((err) => {
-        res.render("items", { message: "no results" });
-      });
+app.get("/items", async (req, res) => {
+  try {
+      let items;
+      if (req.query.category) {
+          items = await storeService.getItemsByCategory(req.query.category);
+      } else if (req.query.minDate) {
+          items = await storeService.getItemsByMinDate(req.query.minDate);
+      } else {
+          items = await storeService.getAllItems();
+      }
+      const categories = await storeService.getCategories();
+      const categoryMap = categories.reduce((map, category) => {
+          map[category.categoryID] = category.categoryName;
+          return map;
+      }, {});
+      items = items.map(item => ({
+          ...item,
+          categoryName: categoryMap[item.categoryID] || 'Unknown'
+      }));
+
+      res.render("items", { items });
+  } catch (err) {
+      res.render("items", { message: "No results" });
   }
 });
 
-app.get("/items/add", (req, res) => {
-  storeService.getCategories()
-      .then((data) => {
-          res.render("addPost", { categories: data });
-      })
-      .catch((err) => {
-          res.render("addPost", { categories: [] });
-      });
+app.get('/items/add', async (req, res) => {
+  try {
+    const categories = await storeService.getCategories();
+    res.render('additem', { categories });
+  } catch (err) {
+    res.status(500).json({ message: "Unable to fetch categories: " + err.message });
+  }
 });
 
 app.post("/items/add", upload.single("featureImage"), (req, res) => {
@@ -249,6 +240,8 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
 
   function processItem(imageUrl) {
     req.body.featureImage = imageUrl;
+    req.body.categoryID = parseInt(req.body.categoryID, 10); 
+
     storeService
       .addItem(req.body)
       .then(() => res.redirect("/items"))
@@ -270,11 +263,10 @@ app.get("/item/:id", (req, res) => {
 
 app.get("/items/delete/:id", (req, res) => {
   storeService
-    .deletePostById(req.params.id)
-    .then(() => res.redirect("/items"))
-    .catch((err) => res.status(500).send("Unable to Remove Post / Post not found"));
+      .deleteItemById(req.params.id)
+      .then(() => res.redirect("/items"))
+      .catch((err) => res.status(500).send("Unable to Remove Item / Item not found"));
 });
-
 
 //---------------------------------------------------------------------------
 /// Category Routes

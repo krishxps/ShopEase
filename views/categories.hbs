@@ -15,9 +15,9 @@
                     <tbody>
                         {{#each categories}}
                         <tr>
-                            <td><a href="/items?category={{this.id}}">{{this.id}}</a></td>
-                            <td><a href="/items?category={{this.id}}">{{this.category}}</a></td>
-                            <td><a href="/categories/delete/{{this.id}}" class="btn btn-danger">remove</a></td>
+                            <td><a href="/items?category={{this.categoryID}}">{{this.categoryID}}</a></td>
+                            <td><a href="/items?category={{this.categoryID}}">{{this.categoryName}}</a></td>
+                            <td><a href="/categories/delete/{{this.categoryID}}" class="btn btn-danger">Remove</a></td>
                         </tr>
                         {{/each}}
                     </tbody>
