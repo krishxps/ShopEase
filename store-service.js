@@ -2,6 +2,7 @@
 // Imports
 // ---------------------------------------------------------------------------
 const Sequelize = require('sequelize');
+import pg from 'pg';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -9,6 +10,7 @@ const Sequelize = require('sequelize');
 let sequelize = new Sequelize("SenecaDB", "SenecaDB_owner", "6KEOFPwGNS2d", {
   host: "ep-small-lab-a5ijyo19.us-east-2.aws.neon.tech",
   dialect: "postgres",
+  dialectModule: pg,
   port: 5432,
   dialectOptions: {
     ssl: { rejectUnauthorized: false },
