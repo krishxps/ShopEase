@@ -124,14 +124,14 @@ app.get("/shop", async (req, res) => {
     viewData.items = items;
     viewData.item = post;
   } catch (err) {
-    viewData.message = "no results";
+    viewData.message = "No results";
   }
 
   try {
     let categories = await storeService.getCategories();
     viewData.categories = categories;
   } catch (err) {
-    viewData.categoriesMessage = "no results";
+    viewData.categoriesMessage = "No results";
   }
   res.render("shop", { data: viewData });
 });
@@ -140,12 +140,23 @@ app.get('/shop/:id', async (req, res) => {
   let viewData = {};
 
   try {
-    let items = [];
-    if (req.query.category) {
-      items = await storeService.getPublishedItemsByCategory(req.query.category);
+    const item = await storeService.getItemById(req.params.id);
+    if (!item || !item.published) {
+      viewData.message = `No results for item with ID: ${req.params.id}`;
     } else {
-      items = await storeService.getPublishedItems();
+      viewData.item = item;
+
+      const category = await storeService.getCategoryById(item.categoryID);
+      viewData.item.categoryName = category ? category.categoryName : 'Unknown';
     }
+  } catch (err) {
+    viewData.message = "Error fetching item details";
+  }
+
+  try {
+    const items = req.query.category
+      ? await storeService.getPublishedItemsByCategory(req.query.category)
+      : await storeService.getPublishedItems();
     items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
     viewData.items = items;
   } catch (err) {
@@ -153,16 +164,7 @@ app.get('/shop/:id', async (req, res) => {
   }
 
   try {
-    viewData.item = await storeService.getItemById(req.params.id);
-    if (!viewData.item || !viewData.item.published) {
-      viewData.message = `No results for item with ID: ${req.params.id}`;
-    }
-  } catch (err) {
-    viewData.message = "Error fetching item details";
-  }
-
-  try {
-    let categories = await storeService.getCategories();
+    const categories = await storeService.getCategories();
     viewData.categories = categories;
   } catch (err) {
     viewData.categoriesMessage = "No results for categories";
@@ -170,6 +172,7 @@ app.get('/shop/:id', async (req, res) => {
 
   res.render("shop", { data: viewData });
 });
+
 
 //---------------------------------------------------------------------------
 /// Item Routes

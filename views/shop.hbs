@@ -22,7 +22,7 @@
                 $
                 {{{data.item.price}}}<br />
                 <strong>Category:</strong>
-                {{{data.item.category}}}<br />
+                {{{data.item.categoryName}}}<br />
                 <strong>Last Updated:</strong>
                 {{{data.item.postDate}}}
               </div>
@@ -55,7 +55,7 @@
     {{#if data.categories}}
       <ul class="list-group">
         {{#each data.categories}}
-          <a href="/shop?category={{this.id}}" class="list-group-item">{{this.category}}</a>
+          <a href="/shop?category={{this.categoryID}}" class="list-group-item">{{this.categoryName}}</a>
         {{/each}}
       </ul>
     {{/if}}
