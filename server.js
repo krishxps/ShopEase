@@ -44,7 +44,6 @@ const upload = multer();
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.set('views', path.join(__dirname, 'views'));
-app.set("view engine", "hbs");
 
 app.use(function (req, res, next) {
   let route = req.path.substring(1);
@@ -90,10 +89,12 @@ app.engine(
         let month = (dateObj.getMonth() + 1).toString();
         let day = dateObj.getDate().toString();
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2,'0')}`;
-    }    
+      }    
     },
   })
 );
+
+app.set("view engine", "hbs");
 
 //---------------------------------------------------------------------------
 /// Default Route

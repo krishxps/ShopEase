@@ -2,7 +2,7 @@
 // Imports
 // ---------------------------------------------------------------------------
 const Sequelize = require('sequelize');
-import pg from 'pg';
+const pg = require('pg');
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -37,7 +37,7 @@ const Category = sequelize.define("Category", {
 const Item = sequelize.define("item", {
   body: Sequelize.TEXT,
   title: Sequelize.STRING,
-  postDate: Sequelize.STRING,
+  postDate: Sequelize.DATE,
   featureImage: Sequelize.STRING,
   published: Sequelize.BOOLEAN,
   price: Sequelize.FLOAT,
@@ -148,7 +148,7 @@ const getPublishedItems = () => {
 
 const addItem = (itemData) => {
   itemData.published = !!itemData.published;
-  itemData.postDate = new Date().toISOString();
+  itemData.postDate = new Date();
   itemData.categoryID = parseInt(itemData.categoryID, 10);
 
   return new Promise((resolve, reject) => {
