@@ -43,7 +43,7 @@ const upload = multer();
 //---------------------------------------------------------------------------
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
-app.set('views', path.join(__dirname, 'views'));
+app.set("views", path.join(__dirname, "views"));
 
 app.use(function (req, res, next) {
   let route = req.path.substring(1);
@@ -84,12 +84,12 @@ app.engine(
           return options.fn(this);
         }
       },
-      formatDate: function(dateObj){
+      formatDate: function (dateObj) {
         let year = dateObj.getFullYear();
         let month = (dateObj.getMonth() + 1).toString();
         let day = dateObj.getDate().toString();
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2,'0')}`;
-      }    
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      },
     },
   })
 );
@@ -116,7 +116,9 @@ app.get("/shop", async (req, res) => {
   try {
     let items = [];
     if (req.query.category) {
-      items = await storeService.getPublishedItemsByCategory(req.query.category);
+      items = await storeService.getPublishedItemsByCategory(
+        req.query.category
+      );
     } else {
       items = await storeService.getPublishedItems();
     }
@@ -137,7 +139,7 @@ app.get("/shop", async (req, res) => {
   res.render("shop", { data: viewData });
 });
 
-app.get('/shop/:id', async (req, res) => {
+app.get("/shop/:id", async (req, res) => {
   let viewData = {};
 
   try {
@@ -148,7 +150,7 @@ app.get('/shop/:id', async (req, res) => {
       viewData.item = item;
 
       const category = await storeService.getCategoryById(item.categoryID);
-      viewData.item.categoryName = category ? category.categoryName : 'Unknown';
+      viewData.item.categoryName = category ? category.categoryName : "Unknown";
     }
   } catch (err) {
     viewData.message = "Error fetching item details";
@@ -174,42 +176,43 @@ app.get('/shop/:id', async (req, res) => {
   res.render("shop", { data: viewData });
 });
 
-
 //---------------------------------------------------------------------------
 /// Item Routes
 //---------------------------------------------------------------------------
 app.get("/items", async (req, res) => {
   try {
-      let items;
-      if (req.query.category) {
-          items = await storeService.getItemsByCategory(req.query.category);
-      } else if (req.query.minDate) {
-          items = await storeService.getItemsByMinDate(req.query.minDate);
-      } else {
-          items = await storeService.getAllItems();
-      }
-      const categories = await storeService.getCategories();
-      const categoryMap = categories.reduce((map, category) => {
-          map[category.categoryID] = category.categoryName;
-          return map;
-      }, {});
-      items = items.map(item => ({
-          ...item,
-          categoryName: categoryMap[item.categoryID] || 'Unknown'
-      }));
+    let items;
+    if (req.query.category) {
+      items = await storeService.getItemsByCategory(req.query.category);
+    } else if (req.query.minDate) {
+      items = await storeService.getItemsByMinDate(req.query.minDate);
+    } else {
+      items = await storeService.getAllItems();
+    }
+    const categories = await storeService.getCategories();
+    const categoryMap = categories.reduce((map, category) => {
+      map[category.categoryID] = category.categoryName;
+      return map;
+    }, {});
+    items = items.map((item) => ({
+      ...item,
+      categoryName: categoryMap[item.categoryID] || "Unknown",
+    }));
 
-      res.render("items", { items });
+    res.render("items", { items });
   } catch (err) {
-      res.render("items", { message: "No results" });
+    res.render("items", { message: "No results" });
   }
 });
 
-app.get('/items/add', async (req, res) => {
+app.get("/items/add", async (req, res) => {
   try {
     const categories = await storeService.getCategories();
-    res.render('additem', { categories });
+    res.render("additem", { categories });
   } catch (err) {
-    res.status(500).json({ message: "Unable to fetch categories: " + err.message });
+    res
+      .status(500)
+      .json({ message: "Unable to fetch categories: " + err.message });
   }
 });
 
@@ -244,7 +247,7 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
 
   function processItem(imageUrl) {
     req.body.featureImage = imageUrl;
-    req.body.categoryID = parseInt(req.body.categoryID, 10); 
+    req.body.categoryID = parseInt(req.body.categoryID, 10);
 
     storeService
       .addItem(req.body)
@@ -267,21 +270,26 @@ app.get("/item/:id", (req, res) => {
 
 app.get("/items/delete/:id", (req, res) => {
   storeService
-      .deleteItemById(req.params.id)
-      .then(() => res.redirect("/items"))
-      .catch((err) => res.status(500).send("Unable to Remove Item / Item not found"));
+    .deleteItemById(req.params.id)
+    .then(() => res.redirect("/items"))
+    .catch((err) =>
+      res.status(500).send("Unable to Remove Item / Item not found")
+    );
 });
 
 //---------------------------------------------------------------------------
 /// Category Routes
 //---------------------------------------------------------------------------
 app.get("/categories", (req, res) => {
-  storeService.getCategories().then((data) => {
-    if (data.length > 0) res.render("categories", { categories: data });
-    else res.render("categories", { message: "no results" });
-  }).catch((err) => {
-    res.render("categories", { message: "no results" });
-  });
+  storeService
+    .getCategories()
+    .then((data) => {
+      if (data.length > 0) res.render("categories", { categories: data });
+      else res.render("categories", { message: "no results" });
+    })
+    .catch((err) => {
+      res.render("categories", { message: "no results" });
+    });
 });
 
 app.get("/categories/add", (req, res) => {
@@ -289,7 +297,8 @@ app.get("/categories/add", (req, res) => {
 });
 
 app.post("/categories/add", (req, res) => {
-  storeService.addCategory(req.body)
+  storeService
+    .addCategory(req.body)
     .then(() => {
       res.redirect("/categories");
     })
@@ -299,7 +308,8 @@ app.post("/categories/add", (req, res) => {
 });
 
 app.get("/categories/delete/:id", (req, res) => {
-  storeService.deleteCategoryById(req.params.id)
+  storeService
+    .deleteCategoryById(req.params.id)
     .then(() => {
       res.redirect("/categories");
     })
@@ -318,7 +328,8 @@ app.use((req, res) => {
 //---------------------------------------------------------------------------
 /// Start Server
 //---------------------------------------------------------------------------
-storeService.initialize()
+storeService
+  .initialize()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Express http server listening on: http://localhost:${PORT}`);

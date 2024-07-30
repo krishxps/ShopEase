@@ -5,12 +5,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
-          <input
-            class="form-control"
-            id="featureImage"
-            name="featureImage"
-            type="file"
-          />
+          <input class="form-control" id="featureImage" name="featureImage" type="file" />
         </div>
       </div>
     </div>
@@ -22,13 +17,7 @@
       <div class="col-md-12">
         <div class="form-group">
           <label for="title">Item Name:</label>
-          <input
-            class="form-control"
-            id="title"
-            name="title"
-            type="text"
-            required
-          />
+          <input class="form-control" id="title" name="title" type="text" required />
         </div>
       </div>
     </div>
@@ -36,13 +25,7 @@
       <div class="col-md-12">
         <div class="form-group">
           <label for="price">Price:</label>
-          <input
-            class="form-control"
-            id="price"
-            name="price"
-            type="text"
-            required
-          />
+          <input class="form-control" id="price" name="price" type="text" required />
         </div>
       </div>
     </div>
@@ -50,13 +33,7 @@
       <div class="col-md-12">
         <div class="form-group">
           <label for="body">Description:</label>
-          <textarea
-            class="form-control"
-            id="body"
-            name="body"
-            rows="5"
-            required
-          ></textarea>
+          <textarea class="form-control" id="body" name="body" rows="5" required></textarea>
         </div>
       </div>
     </div>
@@ -67,7 +44,7 @@
           <select name="categoryID" id="categoryID" required>
             <option value="">Select a category</option>
             {{#each categories}}
-              <option value="{{this.categoryID}}">{{this.categoryName}}</option>
+            <option value="{{this.categoryID}}">{{this.categoryName}}</option>
             {{/each}}
           </select>
 

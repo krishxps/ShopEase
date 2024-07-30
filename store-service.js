@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // Imports
 // ---------------------------------------------------------------------------
-const Sequelize = require('sequelize');
-const pg = require('pg');
+const Sequelize = require("sequelize");
+const pg = require("pg");
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -174,10 +174,10 @@ const getItemsByMinDate = (minDateStr) => {
 };
 
 const getItemById = (id) => {
-    return new Promise((resolve, reject) => {
-      Item.findOne({
-        where: { id: id }
-      })
+  return new Promise((resolve, reject) => {
+    Item.findOne({
+      where: { id: id },
+    })
       .then((item) => {
         if (item) {
           resolve(item);
@@ -186,9 +186,9 @@ const getItemById = (id) => {
         }
       })
       .catch((err) => reject("Error fetching item details: " + err));
-    });
-  };
-  
+  });
+};
+
 const getItemsByCategory = (category) => {
   return new Promise((resolve, reject) => {
     Item.findAll({
@@ -202,19 +202,18 @@ const getItemsByCategory = (category) => {
 };
 
 const getCategoryById = (id) => {
-    return new Promise((resolve, reject) => {
-      Category.findByPk(id)
-        .then((category) => {
-          if (category) {
-            resolve(category);
-          } else {
-            resolve(null); 
-          }
-        })
-        .catch((err) => reject("Error fetching category details: " + err));
-    });
-  };
-  
+  return new Promise((resolve, reject) => {
+    Category.findByPk(id)
+      .then((category) => {
+        if (category) {
+          resolve(category);
+        } else {
+          resolve(null);
+        }
+      })
+      .catch((err) => reject("Error fetching category details: " + err));
+  });
+};
 
 const deleteItemById = (id) => {
   return new Promise((resolve, reject) => {
@@ -257,5 +256,5 @@ module.exports = {
   getItemById,
   deleteItemById,
   deletePostById,
-  getCategoryById
+  getCategoryById,
 };
