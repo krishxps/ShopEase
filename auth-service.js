@@ -12,7 +12,7 @@ const userSchema = new Schema({
     }]
 });
 
-let User; 
+let User;
 
 module.exports.initialize = function () {
     return new Promise((resolve, reject) => {
@@ -29,67 +29,49 @@ module.exports.initialize = function () {
     });
 };
 
-module.exports.registerUser = function (userData) {
-    return new Promise((resolve, reject) => {
-        if (userData.password !== userData.password2) {
-            reject("Passwords do not match");
-        } else {
-            bcrypt.hash(userData.password, 10, (err, hash) => {
-                if (err) {
-                    reject("Error encrypting password");
-                } else {
-                    userData.password = hash;
-                    let newUser = new User(userData);
-                    newUser.save((err) => {
-                        if (err) {
-                            if (err.code === 11000) {
-                                reject("User Name already taken");
-                            } else {
-                                reject("There was an error creating the user: " + err);
-                            }
-                        } else {
-                            resolve();
-                        }
-                    });
-                }
-            });
+module.exports.registerUser = async function (userData) {
+    if (userData.password !== userData.password2) {
+        return Promise.reject("Passwords do not match");
+    }
+    
+    try {
+        const hash = await bcrypt.hash(userData.password, 10);
+        userData.password = hash;
+        const newUser = new User(userData);
+        await newUser.save();  // save() now returns a promise
+        return Promise.resolve();
+    } catch (err) {
+        if (err.code === 11000) {
+            return Promise.reject("User Name already taken");
         }
-    });
+        return Promise.reject("There was an error creating the user: " + err);
+    }
 };
 
-module.exports.checkUser = function (userData) {
-    return new Promise((resolve, reject) => {
-        User.find({ userName: userData.userName }).exec()
-            .then((users) => {
-                if (users.length === 0) {
-                    reject("Unable to find user: " + userData.userName);
-                } else {
-                    bcrypt.compare(userData.password, users[0].password).then((result) => {
-                        if (!result) {
-                            reject("Incorrect Password for user: " + userData.userName);
-                        } else {
-                            users[0].loginHistory.push({
-                                dateTime: (new Date()).toString(),
-                                userAgent: userData.userAgent
-                            });
+module.exports.checkUser = async function (userData) {
+    try {
+        const users = await User.find({ userName: userData.userName }).exec();
+        if (users.length === 0) {
+            return Promise.reject("Unable to find user: " + userData.userName);
+        }
+        
+        const result = await bcrypt.compare(userData.password, users[0].password);
+        if (!result) {
+            return Promise.reject("Incorrect Password for user: " + userData.userName);
+        }
+        
+        users[0].loginHistory.push({
+            dateTime: (new Date()).toString(),
+            userAgent: userData.userAgent
+        });
 
-                            User.updateOne(
-                                { userName: users[0].userName },
-                                { $set: { loginHistory: users[0].loginHistory } }
-                            ).exec()
-                                .then(() => {
-                                    resolve(users[0]);
-                                })
-                                .catch((err) => {
-                                    reject("There was an error verifying the user: " + err);
-                                });
-                        }
-                    });
-                }
-            })
-            .catch((err) => {
-                reject("Unable to find user: " + userData.userName);
-            });
-    });
+        await User.updateOne(
+            { userName: users[0].userName },
+            { $set: { loginHistory: users[0].loginHistory } }
+        ).exec();
+
+        return Promise.resolve(users[0]);
+    } catch (err) {
+        return Promise.reject("There was an error verifying the user: " + err);
+    }
 };
-
