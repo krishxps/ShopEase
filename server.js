@@ -19,6 +19,8 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 const exphbs = require("express-handlebars");
+const authData = require("./auth-service");
+const clientSessions = require("client-sessions");
 
 const storeService = require("./store-service");
 
@@ -96,6 +98,26 @@ app.engine(
 
 app.set("view engine", "hbs");
 
+app.use(clientSessions({
+  cookieName: "session",
+  secret: "web322",
+  duration: 24 * 60 * 60 * 1000,
+  activeDuration: 1000 * 60 * 5
+}));
+
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
+
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+      res.redirect("/login");
+  } else {
+      next();
+  }
+}
+
 //---------------------------------------------------------------------------
 /// Default Route
 //---------------------------------------------------------------------------
@@ -106,6 +128,51 @@ app.get("/", (req, res) => {
 app.get("/about", (req, res) => {
   res.render("about");
 });
+
+//---------------------------------------------------------------------------
+/// Login Routes
+//---------------------------------------------------------------------------
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+app.post("/register", (req, res) => {
+  authData.registerUser(req.body).then(() => {
+      res.render("register", { successMessage: "User created" });
+  }).catch((err) => {
+      res.render("register", { errorMessage: err, userName: req.body.userName });
+  });
+});
+
+app.post("/login", (req, res) => {
+  req.body.userAgent = req.get('User-Agent');
+  authData.checkUser(req.body).then((user) => {
+      req.session.user = {
+          userName: user.userName,
+          email: user.email,
+          loginHistory: user.loginHistory
+      };
+      res.redirect("/items");
+  }).catch((err) => {
+      res.render("login", { errorMessage: err, userName: req.body.userName });
+  });
+});
+
+app.get("/logout", (req, res) => {
+  req.session.reset();
+  res.redirect("/");
+});
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+  res.render("userHistory");
+});
+
+
+
 
 //---------------------------------------------------------------------------
 /// Shop Routes
@@ -179,7 +246,7 @@ app.get("/shop/:id", async (req, res) => {
 //---------------------------------------------------------------------------
 /// Item Routes
 //---------------------------------------------------------------------------
-app.get("/items", async (req, res) => {
+app.get("/items", ensureLogin ,async (req, res) => {
   try {
     let items;
     if (req.query.category) {
@@ -216,7 +283,7 @@ app.get("/items/add", async (req, res) => {
   }
 });
 
-app.post("/items/add", upload.single("featureImage"), (req, res) => {
+app.post("/items/add", ensureLogin ,upload.single("featureImage"), (req, res) => {
   if (req.file) {
     let streamUpload = (req) => {
       return new Promise((resolve, reject) => {
@@ -280,7 +347,7 @@ app.get("/items/delete/:id", (req, res) => {
 //---------------------------------------------------------------------------
 /// Category Routes
 //---------------------------------------------------------------------------
-app.get("/categories", (req, res) => {
+app.get("/categories", ensureLogin , (req, res) => {
   storeService
     .getCategories()
     .then((data) => {
@@ -292,11 +359,11 @@ app.get("/categories", (req, res) => {
     });
 });
 
-app.get("/categories/add", (req, res) => {
+app.get("/categories/add", ensureLogin , (req, res) => {
   res.render("addCategory");
 });
 
-app.post("/categories/add", (req, res) => {
+app.post("/categories/add", ensureLogin ,(req, res) => {
   storeService
     .addCategory(req.body)
     .then(() => {
@@ -307,7 +374,7 @@ app.post("/categories/add", (req, res) => {
     });
 });
 
-app.get("/categories/delete/:id", (req, res) => {
+app.get("/categories/delete/:id", ensureLogin ,(req, res) => {
   storeService
     .deleteCategoryById(req.params.id)
     .then(() => {
@@ -330,6 +397,7 @@ app.use((req, res) => {
 //---------------------------------------------------------------------------
 storeService
   .initialize()
+  .then(authData.initialize)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Express http server listening on: http://localhost:${PORT}`);
